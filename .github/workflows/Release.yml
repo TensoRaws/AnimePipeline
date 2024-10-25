@@ -60,7 +60,7 @@ jobs:
             lychee0/animepipeline
           tags: |
             latest
-            ${{ github.ref }}
+            ${{ github.ref_name }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
