@@ -59,7 +59,7 @@ jobs:
           file: .
           platforms: linux/amd64, linux/arm64
           push: true
-          tags: |
+          tags:
             - lychee0/animepipeline:latest
             - lychee0/animepipeline:${{ github.ref }}
 
