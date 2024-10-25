@@ -1,0 +1,98 @@
+[build-system]
+build-backend = "poetry-core.masonry.api"
+requires = ["poetry-core"]
+
+[tool.coverage.report]
+exclude_also = [
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "except Exception as e"
+]
+
+[tool.coverage.run]
+omit = [
+]
+
+[tool.mypy]
+disable_error_code = "attr-defined"
+disallow_any_generics = false
+disallow_subclassing_any = false
+ignore_missing_imports = true
+plugins = ["pydantic.mypy"]
+strict = true
+warn_return_any = false
+
+[tool.poetry]
+authors = ["Tohrusky"]
+classifiers = [
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13"
+]
+description = "auto encode new anime episode"
+homepage = "https://github.com/TensoRaws/AnimePipeline"
+license = "MIT"
+name = "animepipeline"
+readme = "README.md"
+repository = "https://github.com/TensoRaws/AnimePipeline"
+version = "0.0.1"
+
+# Requirements
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.group.dev.dependencies]
+aiofiles = "^24.1.0"
+feedparser = "^6.0.11"
+httpx = "^0.27.2"
+loguru = "^0.7.2"
+pre-commit = "^3.7.0"
+pydantic = "^2.9.2"
+pymediainfo-tensoraws = "6.1.0"
+python-telegram-bot = "^21.6"
+pyyaml = "^6.0.2"
+qbittorrent-api = "^2024.9.67"
+tenacity = "^9.0.0"
+
+[tool.poetry.group.test.dependencies]
+coverage = "^7.2.0"
+pytest = "^8.0"
+pytest-asyncio = "^0.24.0"
+pytest-cov = "^4.0"
+
+[tool.poetry.group.typing.dependencies]
+mypy = "^1.8.0"
+ruff = "^0.3.7"
+types-aiofiles = "^24.1.0.20240626"
+types-pyyaml = "^6.0.12.20240917"
+types-requests = "^2.28.8"
+
+[tool.ruff]
+extend-ignore = ["B018", "B019", "RUF001", "PGH003", "PGH004", "RUF003", "E402", "RUF002", "B904"]
+extend-select = [
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "PGH",  # pygrep-hooks
+  "RUF",  # ruff
+  "W",  # pycodestyle
+  "YTT"  # flake8-2020
+]
+fixable = ["ALL"]
+line-length = 120
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.isort]
+combine-as-imports = true
+
+[tool.ruff.mccabe]
+max-complexity = 10
