@@ -6,7 +6,7 @@ qbittorrent:
   port: 8091
   username: admin
   password: adminadmin
-  download_path: /downloads
+  download_path: .
 
 finalrip:
   url: http://localhost:8848
