@@ -1,0 +1,21 @@
+loop:
+  interval: 200
+
+qbittorrent:
+  host: localhost
+  port: 8091
+  username: admin
+  password: adminadmin
+  download_path: .
+
+finalrip:
+  url: http://localhost:8848
+  token: 114514
+
+telegram:
+  enable: true
+  local_mode: true
+  base_url: http://localhost:8081/bot
+  base_file_url: http://localhost:8081/file/bot
+  bot_token: sCz0
+  channel_id: -591

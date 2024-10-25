@@ -1,0 +1,26 @@
+base:
+  uploader: TensoRaws
+  script: default.py
+  param: default.txt
+
+nyaa:
+  #  - name: "Make Heroine ga Oosugiru!"
+  #    translation: "败犬女主太多了！"
+  #    bangumi: "https://bangumi.tv/subject/464376"
+  #    link: "https://nyaa.si/?page=rss&q=%5BSubsPlease%5D+Make+Heroine+ga+Oosugiru%21+-++%281080p%29&c=0_0&f=0"
+  #    pattern: 'Make Heroine ga Oosugiru! - (\d+) \(1080p\)'
+  #
+  #  - name: "Roshidere"
+  #    translation: "不时用俄语小声说真心话的邻桌艾莉同学"
+  #    bangumi: "https://bangumi.tv/subject/424883"
+  #    link: "https://nyaa.si/?page=rss&q=%5BErai-raws%5D+Roshidere+-++%5B1080p%5D%5BMultiple+Subtitle%5D+%5BENG%5D%5BPOR-BR%5D%5BSPA-LA%5D%5BSPA%5D%5BARA%5D%5BFRE%5D%5BITA%5D%5BRUS%5D+-%5BHEVC%5D&c=0_0&f=0"
+  #    pattern: 'Roshidere - (\d+) \[1080p\]'
+
+  - name: "Re Zero kara Hajimeru Isekai Seikatsu 3rd"
+    translation: "Re：从零开始的异世界生活 第三季 袭击篇"
+    bangumi: "https://bangumi.tv/subject/425998"
+    link: "https://nyaa.si/?page=rss&q=%5BANi%5D+Re%EF%BC%9A%E5%BE%9E%E9%9B%B6%E9%96%8B%E5%A7%8B%E7%9A%84%E7%95%B0%E4%B8%96%E7%95%8C%E7%94%9F%E6%B4%BB+%E7%AC%AC%E4%B8%89%E5%AD%A3+-+04+%5B1080P%5D%5BBaha%5D%5BWEB-DL%5D%5BAAC+AVC%5D%5BCHT%5D%5BMP4%5D&c=0_0&f=0"
+    pattern: '從零開始的異世界生活 第三季 - (\d+) \[1080P\]'
+    #    uploader: '114514Raws' # override uploader
+    #    script: default2.py # override script
+    #    param: default2.txt # override param
