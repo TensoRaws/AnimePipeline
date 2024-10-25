@@ -12,3 +12,11 @@ lint:
 .PHONY: build
 build:
 	poetry build --format wheel
+
+.PHONY: run
+run:
+	poetry run python -m animepipeline
+
+.PHONY: docker
+docker:
+	docker buildx build -t lychee0/animepipeline .

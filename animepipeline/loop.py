@@ -199,12 +199,17 @@ class Loop:
         await self.finalrip_client.download_completed_task(video_key=bt_downloaded_path.name, save_path=temp_saved_path)
 
         # rename temp file
-        gen_name = gen_file_name(
-            FileNameInfo(
-                path=temp_saved_path, episode=task_info.episode, name=task_info.name, uploader=task_info.uploader
+        try:
+            gen_name = gen_file_name(
+                FileNameInfo(
+                    path=temp_saved_path, episode=task_info.episode, name=task_info.name, uploader=task_info.uploader
+                )
             )
-        )
-        finalrip_downloaded_path = bt_downloaded_path.parent / gen_name
+            finalrip_downloaded_path = bt_downloaded_path.parent / gen_name
+        except Exception as e:
+            logger.error(f"Failed to generate file name: {e}")
+            raise e
+
         if finalrip_downloaded_path.exists():
             finalrip_downloaded_path.unlink()
             logger.warning(f"Encode File already exists, remove it: {finalrip_downloaded_path}")

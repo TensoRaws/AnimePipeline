@@ -1,12 +1,21 @@
 version: "3.8"
 
-name: animepipeline-dev
+name: animepipeline
 
 networks:
   backend:
     driver: bridge
 
 services:
+  animepipeline:
+    image: lychee0/animepipeline:latest
+    restart: always
+    volumes:
+      - ../conf:/app/conf
+      - ./docker/downloads:/downloads
+    networks:
+      - backend
+
   qb:
     image: superng6/qbittorrentee:4.4.5.10
     restart: always
