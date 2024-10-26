@@ -54,6 +54,7 @@ class TGChannelSender:
                 caption=caption,
                 read_timeout=6000,
                 write_timeout=6000,
+                pool_timeout=6000,
             )
         except telegram.error.NetworkError as e:
             logger.error(f"Network error: {e}, video path: {video_path}, video_caption: {caption}")
