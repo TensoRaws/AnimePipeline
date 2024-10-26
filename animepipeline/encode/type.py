@@ -85,3 +85,12 @@ class OSSPresignedURLResponse(BaseModel):
     data: Optional[Data] = None
     error: Optional[Error] = None
     success: bool
+
+
+class RetryMergeRequest(BaseModel):
+    video_key: str
+
+
+class RetryMergeResponse(BaseModel):
+    error: Optional[Error] = None
+    success: bool

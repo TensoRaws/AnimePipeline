@@ -19,6 +19,8 @@ from animepipeline.encode.type import (
     OSSPresignedURLRequest,
     OSSPresignedURLResponse,
     PingResponse,
+    RetryMergeRequest,
+    RetryMergeResponse,
     StartTaskRequest,
     StartTaskResponse,
     TaskNotCompletedError,
@@ -69,6 +71,14 @@ class FinalRipClient:
             logger.error(f"Error getting presigned URL: {e}, {data}")
             raise e
 
+    async def _retry_merge(self, data: RetryMergeRequest) -> RetryMergeResponse:
+        try:
+            response = await self.client.post("/api/v1/task/retry/merge", params=data.model_dump())
+            return RetryMergeResponse(**response.json())
+        except Exception as e:
+            logger.error(f"Error retrying merge: {e}, {data}")
+            raise e
+
     async def check_task_exist(self, video_key: str) -> bool:
         try:
             get_task_progress_response = await self._get_task_progress(GetTaskProgressRequest(video_key=video_key))
@@ -86,6 +96,27 @@ class FinalRipClient:
         except Exception as e:
             logger.error(f"Error checking task completed: {e}, video_key: {video_key}")
             return False
+
+    async def check_task_all_clips_done(self, video_key: str) -> bool:
+        try:
+            get_task_progress_response = await self._get_task_progress(GetTaskProgressRequest(video_key=video_key))
+            if not get_task_progress_response.success:
+                logger.error(f"Error getting task progress: {get_task_progress_response.error.message}")  # type: ignore
+                return False
+
+            for clip in get_task_progress_response.data.progress:  # type: ignore
+                if not clip.completed:
+                    return False
+
+            return True
+        except Exception as e:
+            logger.error(f"Error checking task all clips done: {e}, video_key: {video_key}")
+            return False
+
+    async def retry_merge(self, video_key: str) -> None:
+        retry_merge_response = await self._retry_merge(RetryMergeRequest(video_key=video_key))
+        if not retry_merge_response.success:
+            logger.error(f"Error retrying merge: {retry_merge_response.error.message}")  # type: ignore
 
     @retry(wait=wait_random(min=3, max=5), stop=stop_after_attempt(5))
     async def upload_and_new_task(self, video_path: Union[str, Path]) -> None:

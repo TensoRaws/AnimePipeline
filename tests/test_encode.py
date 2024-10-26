@@ -52,6 +52,9 @@ class Test_FinalRip:
         task_progress = await self.finalrip._get_task_progress(GetTaskProgressRequest(video_key=video_key))
         print(task_progress)
 
+    async def test_retry_merge(self) -> None:
+        await self.finalrip.retry_merge(video_key)
+
     async def test_download_completed_task(self) -> None:
         while True:
             try:
