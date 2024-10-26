@@ -173,6 +173,7 @@ class Loop:
         while not await self.finalrip_client.check_task_exist(bt_downloaded_path.name):
             try:
                 await self.finalrip_client.upload_and_new_task(bt_downloaded_path)
+                logger.info(f'FinalRip Task Created for "{task_info.name}" EP {task_info.episode}')
             except Exception as e:
                 logger.error(f"Failed to upload and new finalrip task: {e}")
             await asyncio.sleep(10)
@@ -183,6 +184,7 @@ class Loop:
                 encode_param=task_info.param,
                 script=task_info.script,
             )
+            logger.info(f'FinalRip Task Started for "{task_info.name}" EP {task_info.episode}')
         except Exception as e:
             logger.error(f"Failed to start finalrip task: {e}")
 

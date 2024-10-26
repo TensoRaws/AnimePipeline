@@ -113,39 +113,41 @@ class FinalRipClient:
             logger.error(f"Error getting presigned URL: {e}")
             raise e
 
-        try:
-            content_type = mimetypes.guess_type(video_path)[0]
-        except Exception:
-            content_type = "application/octet-stream"
+        if not oss_presigned_url_response.data.exist:  # type: ignore
+            try:
+                content_type = mimetypes.guess_type(video_path)[0]
+            except Exception:
+                content_type = "application/octet-stream"
 
-        # upload file
-        try:
-            logger.info(f"Uploading file: {video_path}")
-            t0 = time.time()
+            # upload file
+            try:
+                logger.info(f"Uploading file: {video_path}")
+                t0 = time.time()
 
-            # 这里不要用异步，会内存泄漏
-            def _upload_file() -> None:
-                with open(video_path, mode="rb") as v:
-                    video_content = v.read()
-                    logger.info(f"Read file Successfully! path: {video_path} time: {time.time() - t0:.2f}s")
-                    response = httpx.put(
-                        url=oss_presigned_url_response.data.url,  # type: ignore
-                        content=video_content,
-                        headers={"Content-Type": content_type},
-                        timeout=60 * 60,
-                    )
-                    if response.status_code != 200:
-                        raise IOError(f"Error uploading file: {response.text}")
+                # 这里不要用异步，会内存泄漏
+                def _upload_file() -> None:
+                    with open(video_path, mode="rb") as v:
+                        video_content = v.read()
+                        logger.info(f"Read file Successfully! path: {video_path} time: {time.time() - t0:.2f}s")
+                        response = httpx.put(
+                            url=oss_presigned_url_response.data.url,  # type: ignore
+                            content=video_content,
+                            headers={"Content-Type": content_type},
+                            timeout=60 * 60,
+                        )
+                        if response.status_code != 200:
+                            raise IOError(f"Error uploading file: {response.text}")
 
-            _upload_file()
-            del _upload_file
-            gc.collect()
-            logger.info(f"Upload file Successfully! path: {video_path} time: {time.time() - t0:.2f}s")
-        except Exception as e:
-            logger.error(f"Error in uploading file: {video_path}: {e}")
-            raise e
+                _upload_file()
+                del _upload_file
+                gc.collect()
+                logger.info(f"Upload file Successfully! path: {video_path} time: {time.time() - t0:.2f}s")
+            except Exception as e:
+                logger.error(f"Error in uploading file: {video_path}: {e}")
+                raise e
 
-        await asyncio.sleep(2)
+            await asyncio.sleep(2)
+
         # new task
         new_task_response = await self._new_task(NewTaskRequest(video_key=video_key))
         if not new_task_response.success:
