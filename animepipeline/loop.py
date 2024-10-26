@@ -175,7 +175,6 @@ class Loop:
                 await self.finalrip_client.upload_and_new_task(bt_downloaded_path)
             except Exception as e:
                 logger.error(f"Failed to upload and new finalrip task: {e}")
-                raise e
             await asyncio.sleep(10)
 
         try:

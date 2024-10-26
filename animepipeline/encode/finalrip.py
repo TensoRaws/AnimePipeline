@@ -1,9 +1,10 @@
+import gc
 import mimetypes
 import time
 from pathlib import Path
 from typing import Union
 
-import aiofiles
+import httpx
 from httpx import AsyncClient
 from loguru import logger
 from tenacity import retry, stop_after_attempt, wait_random
@@ -102,10 +103,14 @@ class FinalRipClient:
 
         # gen oss presigned url
         video_key = Path(video_path).name
-        oss_presigned_url_response = await self._get_oss_presigned_url(OSSPresignedURLRequest(video_key=video_key))
-        if not oss_presigned_url_response.success:
-            logger.error(f"Error getting presigned URL: {oss_presigned_url_response.error.message}")  # type: ignore
-            raise ValueError(f"Error getting presigned URL: {oss_presigned_url_response.error.message}")  # type: ignore
+        try:
+            oss_presigned_url_response = await self._get_oss_presigned_url(OSSPresignedURLRequest(video_key=video_key))
+            if not oss_presigned_url_response.success:
+                logger.error(f"Error getting presigned URL: {oss_presigned_url_response.error.message}")  # type: ignore
+                raise ValueError(f"Error getting presigned URL: {oss_presigned_url_response.error.message}")  # type: ignore
+        except Exception as e:
+            logger.error(f"Error getting presigned URL: {e}")
+            raise e
 
         try:
             content_type = mimetypes.guess_type(video_path)[0]
@@ -116,17 +121,24 @@ class FinalRipClient:
         try:
             logger.info(f"Uploading file: {video_path}")
             t0 = time.time()
-            async with aiofiles.open(video_path, mode="rb") as v:
-                video_content = await v.read()
 
-            response = await self.client.put(
-                url=oss_presigned_url_response.data.url,  # type: ignore
-                content=video_content,
-                headers={"Content-Type": content_type},
-                timeout=60 * 60,
-            )
-            if response.status_code != 200:
-                raise IOError(f"Error uploading file: {response.text}")
+            # 这里不要用异步，会内存泄漏
+            def _upload_file() -> None:
+                with open(video_path, mode="rb") as v:
+                    video_content = v.read()
+                    logger.info(f"Read file Successfully! path: {video_path} time: {time.time() - t0:.2f}s")
+                    response = httpx.put(
+                        url=oss_presigned_url_response.data.url,  # type: ignore
+                        content=video_content,
+                        headers={"Content-Type": content_type},
+                        timeout=60 * 60,
+                    )
+                    if response.status_code != 200:
+                        raise IOError(f"Error uploading file: {response.text}")
+
+            _upload_file()
+            del _upload_file
+            gc.collect()
             logger.info(f"Upload file Successfully! path: {video_path} time: {time.time() - t0:.2f}s")
         except Exception as e:
             logger.error(f"Error in uploading file: {video_path}: {e}")
@@ -168,5 +180,5 @@ class FinalRipClient:
         if response.status_code != 200:
             raise IOError(f"Error downloading file: {response.text}")
 
-        async with aiofiles.open(save_path, mode="wb") as v:
-            await v.write(response.content)
+        with open(save_path, mode="wb") as v:
+            v.write(response.content)
