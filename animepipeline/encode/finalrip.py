@@ -1,3 +1,4 @@
+import asyncio
 import gc
 import mimetypes
 import time
@@ -144,6 +145,7 @@ class FinalRipClient:
             logger.error(f"Error in uploading file: {video_path}: {e}")
             raise e
 
+        await asyncio.sleep(2)
         # new task
         new_task_response = await self._new_task(NewTaskRequest(video_key=video_key))
         if not new_task_response.success:
