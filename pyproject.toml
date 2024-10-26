@@ -39,7 +39,7 @@ license = "MIT"
 name = "animepipeline"
 readme = "README.md"
 repository = "https://github.com/TensoRaws/AnimePipeline"
-version = "0.0.2"
+version = "0.0.3"
 
 # Requirements
 [tool.poetry.dependencies]
