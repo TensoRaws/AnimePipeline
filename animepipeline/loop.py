@@ -173,9 +173,9 @@ class Loop:
         while not await self.finalrip_client.check_task_exist(bt_downloaded_path.name):
             try:
                 await self.finalrip_client.upload_and_new_task(bt_downloaded_path)
+                logger.info(f'FinalRip Task Created for "{task_info.name}" EP {task_info.episode}')
             except Exception as e:
                 logger.error(f"Failed to upload and new finalrip task: {e}")
-                raise e
             await asyncio.sleep(10)
 
         try:
@@ -184,6 +184,7 @@ class Loop:
                 encode_param=task_info.param,
                 script=task_info.script,
             )
+            logger.info(f'FinalRip Task Started for "{task_info.name}" EP {task_info.episode}')
         except Exception as e:
             logger.error(f"Failed to start finalrip task: {e}")
 
@@ -192,6 +193,20 @@ class Loop:
 
         # check task progress
         while not await self.finalrip_client.check_task_completed(bt_downloaded_path.name):
+            # retry merge if all clips are done but merge failed?
+            if await self.finalrip_client.check_task_all_clips_done(bt_downloaded_path.name):
+                # wait 30s before retry merge
+                await asyncio.sleep(30)
+                # check again
+                if await self.finalrip_client.check_task_completed(bt_downloaded_path.name):
+                    break
+
+                try:
+                    await self.finalrip_client.retry_merge(bt_downloaded_path.name)
+                    logger.info(f'Retry Merge Clips for "{task_info.name}" EP {task_info.episode}')
+                except Exception as e:
+                    logger.error(f'Failed to retry merge clips for "{task_info.name}" EP {task_info.episode}: {e}')
+
             await asyncio.sleep(10)
 
         # download temp file to bt_downloaded_path's parent directory
