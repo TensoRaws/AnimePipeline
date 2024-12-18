@@ -30,7 +30,7 @@ from animepipeline.util.video import VIDEO_EXTENSIONS
 
 class FinalRipClient:
     def __init__(self, config: FinalRipConfig):
-        self.client = AsyncClient(base_url=str(config.url), headers={"token": str(config.token)})
+        self.client = AsyncClient(base_url=str(config.url), headers={"token": str(config.token)}, timeout=30)
 
     async def ping(self) -> PingResponse:
         try:
