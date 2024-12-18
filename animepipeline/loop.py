@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from typing import Any, Callable, Coroutine, List
+from typing import Any, Callable, Coroutine, List, Optional
 
 from loguru import logger
 
@@ -16,8 +16,10 @@ from animepipeline.store import AsyncJsonStore, TaskStatus
 
 class TaskInfo(TorrentInfo):
     uploader: str
-    script: str
-    param: str
+    script_content: str
+    param_content: str
+    slice: Optional[bool] = True
+    timeout: Optional[int] = 20
 
 
 def build_task_info(torrent_info: TorrentInfo, nyaa_config: NyaaConfig, rss_config: RSSConfig) -> TaskInfo:
@@ -34,14 +36,16 @@ def build_task_info(torrent_info: TorrentInfo, nyaa_config: NyaaConfig, rss_conf
     if nyaa_config.param not in rss_config.params:
         raise ValueError(f"param not found: {nyaa_config.param}")
 
-    script = rss_config.scripts[nyaa_config.script]
-    param = rss_config.params[nyaa_config.param]
+    script_content = rss_config.scripts[nyaa_config.script]
+    param_content = rss_config.params[nyaa_config.param]
 
     return TaskInfo(
         **torrent_info.model_dump(),
         uploader=nyaa_config.uploader,
-        script=script,
-        param=param,
+        script_content=script_content,
+        param_content=param_content,
+        slice=nyaa_config.slice,
+        timeout=nyaa_config.timeout,
     )
 
 
@@ -181,15 +185,17 @@ class Loop:
         try:
             await self.finalrip_client.start_task(
                 video_key=bt_downloaded_path.name,
-                encode_param=task_info.param,
-                script=task_info.script,
+                encode_param=task_info.param_content,
+                script=task_info.script_content,
+                slice=task_info.slice,
+                timeout=task_info.timeout,
             )
             logger.info(f'FinalRip Task Started for "{task_info.name}" EP {task_info.episode}')
         except Exception as e:
             logger.error(f"Failed to start finalrip task: {e}")
 
         # wait video cut done
-        await asyncio.sleep(10)
+        await asyncio.sleep(30)
 
         # check task progress
         while not await self.finalrip_client.check_task_completed(bt_downloaded_path.name):
@@ -207,7 +213,7 @@ class Loop:
                 except Exception as e:
                     logger.error(f'Failed to retry merge clips for "{task_info.name}" EP {task_info.episode}: {e}')
 
-            await asyncio.sleep(10)
+            await asyncio.sleep(60)
 
         # download temp file to bt_downloaded_path's parent directory
         temp_saved_path: Path = bt_downloaded_path.parent / (bt_downloaded_path.name + "-encoded.mkv")

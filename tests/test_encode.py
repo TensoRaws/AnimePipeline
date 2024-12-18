@@ -37,7 +37,7 @@ class Test_FinalRip:
             s = v
         print(repr(s))
         try:
-            await self.finalrip.start_task(encode_param=p, script=s, video_key=video_key)
+            await self.finalrip.start_task(encode_param=p, script=s, video_key=video_key, slice=True, timeout=10)
         except Exception as e:
             print(e)
 

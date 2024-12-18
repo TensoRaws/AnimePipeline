@@ -35,6 +35,8 @@ class StartTaskRequest(BaseModel):
     encode_param: str
     script: str
     video_key: str
+    slice: Optional[bool] = None
+    timeout: Optional[int] = None
 
 
 class StartTaskResponse(BaseModel):

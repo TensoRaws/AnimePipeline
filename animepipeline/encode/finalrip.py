@@ -3,7 +3,7 @@ import gc
 import mimetypes
 import time
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 import httpx
 from httpx import AsyncClient
@@ -184,15 +184,23 @@ class FinalRipClient:
         if not new_task_response.success:
             logger.error(f"Error creating task: {new_task_response.error.message}")  # type: ignore
 
-    async def start_task(self, video_key: str, encode_param: str, script: str) -> None:
+    async def start_task(
+        self, video_key: str, encode_param: str, script: str, slice: Optional[bool] = True, timeout: Optional[int] = 20
+    ) -> None:
         """
         start encode task
 
         :param video_key: video_key of the task
         :param encode_param: encode param
         :param script: encode script
+        :param slice: cut video into clips or not
+        :param timeout: clip timeout, default 20 minutes
         """
-        resp = await self._start_task(StartTaskRequest(video_key=video_key, encode_param=encode_param, script=script))
+        resp = await self._start_task(
+            StartTaskRequest(
+                video_key=video_key, encode_param=encode_param, script=script, slice=slice, timeout=timeout
+            )
+        )
         if not resp.success:
             logger.warning(f"Failed to start finalrip task: {resp.error.message}")  # type: ignore
 
