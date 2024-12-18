@@ -12,7 +12,6 @@ from .util import ASSETS_PATH, CONFIG_PATH
 video_key = "test_144p.mp4"
 
 
-@pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get("GITHUB_ACTIONS") == "true", reason="Only test locally")
 class Test_FinalRip:
     def setup_method(self) -> None:

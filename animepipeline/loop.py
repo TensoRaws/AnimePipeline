@@ -107,7 +107,7 @@ class Loop:
         """
         self.pipeline_tasks.append(self.pipeline_bt)
         self.pipeline_tasks.append(self.pipeline_finalrip)
-        self.pipeline_tasks.append(self.pipeline_tg)
+        self.pipeline_tasks.append(self.pipeline_post)
 
     async def pipeline(self, task_info: TaskInfo) -> None:
         # init task status
@@ -195,8 +195,8 @@ class Loop:
         while not await self.finalrip_client.check_task_completed(bt_downloaded_path.name):
             # retry merge if all clips are done but merge failed?
             if await self.finalrip_client.check_task_all_clips_done(bt_downloaded_path.name):
-                # wait 30s before retry merge
-                await asyncio.sleep(30)
+                # wait 60s before retry merge
+                await asyncio.sleep(60)
                 # check again
                 if await self.finalrip_client.check_task_completed(bt_downloaded_path.name):
                     break
@@ -237,7 +237,7 @@ class Loop:
         task_status.finalrip_downloaded_path = str(finalrip_downloaded_path)
         await self.json_store.update_task(task_info.hash, task_status)
 
-    async def pipeline_tg(self, task_info: TaskInfo) -> None:
+    async def pipeline_post(self, task_info: TaskInfo) -> None:
         task_status = await self.json_store.get_task(task_info.hash)
 
         if self.tg_channel_sender is None:
@@ -245,21 +245,20 @@ class Loop:
             return
 
         # check tg
-        if task_status.tg_uploaded:
+        if task_status.tg_posted:
             return
 
         if task_status.finalrip_downloaded_path is None:
             logger.error("FinalRip download path is None! finalrip download task not finished?")
             raise ValueError("FinalRip download path is None! finalrip download task not finished?")
 
-        logger.info(f'Start Telegram Channel Upload for "{task_info.name}" EP {task_info.episode}')
+        logger.info(f'Post to Telegram Channel for "{task_info.name}" EP {task_info.episode}')
 
         finalrip_downloaded_path = Path(task_status.finalrip_downloaded_path)
 
-        await self.tg_channel_sender.send_video(
-            video_path=finalrip_downloaded_path,
-            caption=f"{task_info.translation} | EP {task_info.episode} | {finalrip_downloaded_path.name}",
+        await self.tg_channel_sender.send_text(
+            text=f"{task_info.translation} | EP {task_info.episode} | {finalrip_downloaded_path.name}",
         )
 
-        task_status.tg_uploaded = True
+        task_status.tg_posted = True
         await self.json_store.update_task(task_info.hash, task_status)

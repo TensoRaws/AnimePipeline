@@ -1,7 +1,5 @@
 import asyncio
 
-import pytest
-
 from animepipeline.pool.task import AsyncTaskExecutor
 
 
@@ -12,7 +10,6 @@ async def example_task(task_id: str, duration: int) -> None:
     print(f"Task {task_id} completed.")
 
 
-@pytest.mark.asyncio
 async def test_task_executor() -> None:
     executor = AsyncTaskExecutor()
 
@@ -27,7 +24,6 @@ async def test_task_executor() -> None:
         assert await executor.task_status(f"task{task_id}") == "Completed"
 
 
-@pytest.mark.asyncio
 async def test_task_executor_shutdown() -> None:
     executor = AsyncTaskExecutor()
 
@@ -44,7 +40,6 @@ async def test_task_executor_shutdown() -> None:
         assert await executor.task_status(f"task{task_id}") == "Pending"
 
 
-@pytest.mark.asyncio
 async def test_task_dump() -> None:
     executor = AsyncTaskExecutor()
 

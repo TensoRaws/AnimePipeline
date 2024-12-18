@@ -39,7 +39,7 @@ or you can use docker to run the project, see [docker-compose.yml](./deploy/dock
 
 #### RSS Config:
 
-supports hot reloading, which means you can update your config without needing to restart the service. 
+supports hot reloading, which means you can update your config without needing to restart the service.
 
 you should provide the compatible params and scripts in the [params](./conf/params) and [scripts](./conf/scripts) folder.
 
