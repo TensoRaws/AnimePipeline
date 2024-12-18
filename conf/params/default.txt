@@ -1,1 +1,1 @@
-ffmpeg -i - -vcodec libx265 -crf 16
+ffmpeg -i - -vcodec libx264 -preset ultrafast

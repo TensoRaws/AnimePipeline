@@ -10,6 +10,8 @@ class BaseConfig(BaseModel):
     uploader: str
     script: str
     param: str
+    slice: Optional[bool] = True
+    timeout: Optional[int] = 20
 
 
 class NyaaConfig(BaseModel):
@@ -21,6 +23,8 @@ class NyaaConfig(BaseModel):
     uploader: Optional[str] = None
     script: Optional[str] = None
     param: Optional[str] = None
+    slice: Optional[bool] = None
+    timeout: Optional[int] = None
 
 
 class RSSConfig(BaseModel):
@@ -107,6 +111,12 @@ class RSSConfig(BaseModel):
         for item in config.nyaa:
             if item.uploader is None:
                 item.uploader = config.base.uploader
+
+            if item.slice is None:
+                item.slice = config.base.slice
+
+            if item.timeout is None:
+                item.timeout = config.base.timeout
 
             if item.script is None:
                 item.script = config.base.script
