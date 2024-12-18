@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Callable, Coroutine, List, Optional
 
 from loguru import logger
+from pydantic import DirectoryPath
 
 from animepipeline.bt import QBittorrentManager
 from animepipeline.config import NyaaConfig, RSSConfig, ServerConfig
@@ -15,6 +16,7 @@ from animepipeline.store import AsyncJsonStore, TaskStatus
 
 
 class TaskInfo(TorrentInfo):
+    download_path: DirectoryPath
     uploader: str
     script_content: str
     param_content: str
@@ -22,13 +24,16 @@ class TaskInfo(TorrentInfo):
     timeout: Optional[int] = 20
 
 
-def build_task_info(torrent_info: TorrentInfo, nyaa_config: NyaaConfig, rss_config: RSSConfig) -> TaskInfo:
+def build_task_info(
+    torrent_info: TorrentInfo, nyaa_config: NyaaConfig, rss_config: RSSConfig, server_config: ServerConfig
+) -> TaskInfo:
     """
     Build TaskInfo from TorrentInfo, NyaaConfig and RSSConfig
 
     :param torrent_info: TorrentInfo
     :param nyaa_config: NyaaConfig
     :param rss_config: RSSConfig
+    :param server_config: ServerConfig
     :return: TaskInfo
     """
     if nyaa_config.script not in rss_config.scripts:
@@ -41,6 +46,7 @@ def build_task_info(torrent_info: TorrentInfo, nyaa_config: NyaaConfig, rss_conf
 
     return TaskInfo(
         **torrent_info.model_dump(),
+        download_path=server_config.qbittorrent.download_path,
         uploader=nyaa_config.uploader,
         script_content=script_content,
         param_content=param_content,
@@ -98,7 +104,12 @@ class Loop:
                 torrent_info_list = parse_nyaa(cfg)
 
                 for torrent_info in torrent_info_list:
-                    task_info = build_task_info(torrent_info, cfg, self.rss_config)
+                    task_info = build_task_info(
+                        torrent_info=torrent_info,
+                        nyaa_config=cfg,
+                        rss_config=self.rss_config,
+                        server_config=self.server_config,
+                    )
 
                     await self.task_executor.submit_task(torrent_info.hash, self.pipeline, task_info)
 
@@ -172,7 +183,7 @@ class Loop:
         logger.info(f'Start FinalRip Encode for "{task_info.name}" EP {task_info.episode}')
         # start finalrip task
 
-        bt_downloaded_path = Path(task_status.bt_downloaded_path)
+        bt_downloaded_path = Path(task_info.download_path) / task_status.bt_downloaded_path
 
         while not await self.finalrip_client.check_task_exist(bt_downloaded_path.name):
             try:
@@ -226,7 +237,7 @@ class Loop:
                     path=temp_saved_path, episode=task_info.episode, name=task_info.name, uploader=task_info.uploader
                 )
             )
-            finalrip_downloaded_path = bt_downloaded_path.parent / gen_name
+            finalrip_downloaded_path = Path(task_info.download_path) / gen_name
         except Exception as e:
             logger.error(f"Failed to generate file name: {e}")
             raise e
@@ -240,7 +251,7 @@ class Loop:
         logger.info(f'FinalRip Encode Done for "{finalrip_downloaded_path.name}"')
 
         # update task status
-        task_status.finalrip_downloaded_path = str(finalrip_downloaded_path)
+        task_status.finalrip_downloaded_path = gen_name
         await self.json_store.update_task(task_info.hash, task_status)
 
     async def pipeline_post(self, task_info: TaskInfo) -> None:
@@ -260,7 +271,7 @@ class Loop:
 
         logger.info(f'Post to Telegram Channel for "{task_info.name}" EP {task_info.episode}')
 
-        finalrip_downloaded_path = Path(task_status.finalrip_downloaded_path)
+        finalrip_downloaded_path = Path(task_info.download_path) / task_status.finalrip_downloaded_path
 
         await self.tg_channel_sender.send_text(
             text=f"{task_info.translation} | EP {task_info.episode} | {finalrip_downloaded_path.name}",
