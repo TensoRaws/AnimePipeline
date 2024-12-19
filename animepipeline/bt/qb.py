@@ -78,7 +78,7 @@ class QBittorrentManager:
             if torrent[0].state in self.COMPLETE_STATES:
                 file_list: List[Tuple[str, int]] = [(file["name"], file["size"]) for file in torrent[0].files]
                 file_list.sort(key=lambda x: x[1], reverse=True)
-                return self.download_path / Path(file_list[0][0])
+                return Path(file_list[0][0])
 
             else:
                 return None

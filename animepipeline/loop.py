@@ -1,8 +1,9 @@
 import asyncio
 from pathlib import Path
-from typing import Any, Callable, Coroutine, List
+from typing import Any, Callable, Coroutine, List, Optional
 
 from loguru import logger
+from pydantic import DirectoryPath
 
 from animepipeline.bt import QBittorrentManager
 from animepipeline.config import NyaaConfig, RSSConfig, ServerConfig
@@ -15,18 +16,24 @@ from animepipeline.store import AsyncJsonStore, TaskStatus
 
 
 class TaskInfo(TorrentInfo):
+    download_path: DirectoryPath
     uploader: str
-    script: str
-    param: str
+    script_content: str
+    param_content: str
+    slice: Optional[bool] = True
+    timeout: Optional[int] = 20
 
 
-def build_task_info(torrent_info: TorrentInfo, nyaa_config: NyaaConfig, rss_config: RSSConfig) -> TaskInfo:
+def build_task_info(
+    torrent_info: TorrentInfo, nyaa_config: NyaaConfig, rss_config: RSSConfig, server_config: ServerConfig
+) -> TaskInfo:
     """
     Build TaskInfo from TorrentInfo, NyaaConfig and RSSConfig
 
     :param torrent_info: TorrentInfo
     :param nyaa_config: NyaaConfig
     :param rss_config: RSSConfig
+    :param server_config: ServerConfig
     :return: TaskInfo
     """
     if nyaa_config.script not in rss_config.scripts:
@@ -34,14 +41,17 @@ def build_task_info(torrent_info: TorrentInfo, nyaa_config: NyaaConfig, rss_conf
     if nyaa_config.param not in rss_config.params:
         raise ValueError(f"param not found: {nyaa_config.param}")
 
-    script = rss_config.scripts[nyaa_config.script]
-    param = rss_config.params[nyaa_config.param]
+    script_content = rss_config.scripts[nyaa_config.script]
+    param_content = rss_config.params[nyaa_config.param]
 
     return TaskInfo(
         **torrent_info.model_dump(),
+        download_path=server_config.qbittorrent.download_path,
         uploader=nyaa_config.uploader,
-        script=script,
-        param=param,
+        script_content=script_content,
+        param_content=param_content,
+        slice=nyaa_config.slice,
+        timeout=nyaa_config.timeout,
     )
 
 
@@ -94,7 +104,12 @@ class Loop:
                 torrent_info_list = parse_nyaa(cfg)
 
                 for torrent_info in torrent_info_list:
-                    task_info = build_task_info(torrent_info, cfg, self.rss_config)
+                    task_info = build_task_info(
+                        torrent_info=torrent_info,
+                        nyaa_config=cfg,
+                        rss_config=self.rss_config,
+                        server_config=self.server_config,
+                    )
 
                     await self.task_executor.submit_task(torrent_info.hash, self.pipeline, task_info)
 
@@ -107,7 +122,7 @@ class Loop:
         """
         self.pipeline_tasks.append(self.pipeline_bt)
         self.pipeline_tasks.append(self.pipeline_finalrip)
-        self.pipeline_tasks.append(self.pipeline_tg)
+        self.pipeline_tasks.append(self.pipeline_post)
 
     async def pipeline(self, task_info: TaskInfo) -> None:
         # init task status
@@ -168,7 +183,7 @@ class Loop:
         logger.info(f'Start FinalRip Encode for "{task_info.name}" EP {task_info.episode}')
         # start finalrip task
 
-        bt_downloaded_path = Path(task_status.bt_downloaded_path)
+        bt_downloaded_path = Path(task_info.download_path) / task_status.bt_downloaded_path
 
         while not await self.finalrip_client.check_task_exist(bt_downloaded_path.name):
             try:
@@ -181,33 +196,21 @@ class Loop:
         try:
             await self.finalrip_client.start_task(
                 video_key=bt_downloaded_path.name,
-                encode_param=task_info.param,
-                script=task_info.script,
+                encode_param=task_info.param_content,
+                script=task_info.script_content,
+                slice=task_info.slice,
+                timeout=task_info.timeout,
             )
             logger.info(f'FinalRip Task Started for "{task_info.name}" EP {task_info.episode}')
         except Exception as e:
             logger.error(f"Failed to start finalrip task: {e}")
 
         # wait video cut done
-        await asyncio.sleep(10)
+        await asyncio.sleep(30)
 
         # check task progress
         while not await self.finalrip_client.check_task_completed(bt_downloaded_path.name):
-            # retry merge if all clips are done but merge failed?
-            if await self.finalrip_client.check_task_all_clips_done(bt_downloaded_path.name):
-                # wait 30s before retry merge
-                await asyncio.sleep(30)
-                # check again
-                if await self.finalrip_client.check_task_completed(bt_downloaded_path.name):
-                    break
-
-                try:
-                    await self.finalrip_client.retry_merge(bt_downloaded_path.name)
-                    logger.info(f'Retry Merge Clips for "{task_info.name}" EP {task_info.episode}')
-                except Exception as e:
-                    logger.error(f'Failed to retry merge clips for "{task_info.name}" EP {task_info.episode}: {e}')
-
-            await asyncio.sleep(10)
+            await asyncio.sleep(30)
 
         # download temp file to bt_downloaded_path's parent directory
         temp_saved_path: Path = bt_downloaded_path.parent / (bt_downloaded_path.name + "-encoded.mkv")
@@ -220,7 +223,7 @@ class Loop:
                     path=temp_saved_path, episode=task_info.episode, name=task_info.name, uploader=task_info.uploader
                 )
             )
-            finalrip_downloaded_path = bt_downloaded_path.parent / gen_name
+            finalrip_downloaded_path = Path(task_info.download_path) / gen_name
         except Exception as e:
             logger.error(f"Failed to generate file name: {e}")
             raise e
@@ -234,10 +237,10 @@ class Loop:
         logger.info(f'FinalRip Encode Done for "{finalrip_downloaded_path.name}"')
 
         # update task status
-        task_status.finalrip_downloaded_path = str(finalrip_downloaded_path)
+        task_status.finalrip_downloaded_path = gen_name
         await self.json_store.update_task(task_info.hash, task_status)
 
-    async def pipeline_tg(self, task_info: TaskInfo) -> None:
+    async def pipeline_post(self, task_info: TaskInfo) -> None:
         task_status = await self.json_store.get_task(task_info.hash)
 
         if self.tg_channel_sender is None:
@@ -245,21 +248,20 @@ class Loop:
             return
 
         # check tg
-        if task_status.tg_uploaded:
+        if task_status.tg_posted:
             return
 
         if task_status.finalrip_downloaded_path is None:
             logger.error("FinalRip download path is None! finalrip download task not finished?")
             raise ValueError("FinalRip download path is None! finalrip download task not finished?")
 
-        logger.info(f'Start Telegram Channel Upload for "{task_info.name}" EP {task_info.episode}')
+        logger.info(f'Post to Telegram Channel for "{task_info.name}" EP {task_info.episode}')
 
-        finalrip_downloaded_path = Path(task_status.finalrip_downloaded_path)
+        finalrip_downloaded_path = Path(task_info.download_path) / task_status.finalrip_downloaded_path
 
-        await self.tg_channel_sender.send_video(
-            video_path=finalrip_downloaded_path,
-            caption=f"{task_info.translation} | EP {task_info.episode} | {finalrip_downloaded_path.name}",
+        await self.tg_channel_sender.send_text(
+            text=f"{task_info.translation} | EP {task_info.episode} | {finalrip_downloaded_path.name}",
         )
 
-        task_status.tg_uploaded = True
+        task_status.tg_posted = True
         await self.json_store.update_task(task_info.hash, task_status)

@@ -1,9 +1,7 @@
-from pathlib import Path
-from typing import Optional, Union
-
-import telegram.error
+import telegram
 from loguru import logger
 from telegram import Bot
+from tenacity import retry, stop_after_attempt, wait_random
 
 from animepipeline.config import TelegramConfig
 
@@ -16,47 +14,20 @@ class TGChannelSender:
     """
 
     def __init__(self, config: TelegramConfig) -> None:
-        if config.local_mode:
-            self.bot = Bot(
-                token=config.bot_token,
-                base_url=str(config.base_url),
-                base_file_url=str(config.base_file_url),
-                local_mode=True,
-            )
-        else:
-            self.bot = Bot(token=config.bot_token)
-
+        self.bot = Bot(token=config.bot_token)
         self.channel_id = config.channel_id
 
-    async def send_video(self, video_path: Union[Path, str], caption: Optional[str] = None) -> None:
+    @retry(wait=wait_random(min=3, max=5), stop=stop_after_attempt(5))
+    async def send_text(self, text: str) -> None:
         """
-        Send video to the channel.
+        Send text to the channel.
 
-        :param video_path:
-        :param caption: the caption of the video
+        :param text: The text to send.
         """
-        video_path = Path(video_path)
-        video_name = video_path.name
-        if not video_path.exists():
-            raise FileNotFoundError(f"Video file not found: {video_path}")
-
-        if caption is None:
-            caption = video_name
-
-        with open(video_path, "rb") as f:
-            video_file = f.read()
-
         try:
-            await self.bot.send_video(
-                chat_id=self.channel_id,
-                video=video_file,
-                filename=video_name,
-                caption=caption,
-                read_timeout=6000,
-                write_timeout=6000,
-                pool_timeout=6000,
-            )
+            await self.bot.send_message(chat_id=self.channel_id, text=text)
         except telegram.error.NetworkError as e:
-            logger.error(f"Network error: {e}, video path: {video_path}, video_caption: {caption}")
+            logger.error(f"Network error: {e}, text: {text}")
+            raise e
         except Exception as e:
-            logger.error(f"Unknown Error sending video: {e}, video path: {video_path}, video_caption: {caption}")
+            logger.error(f"Unknown Error sending text: {e}, text: {text}")

@@ -1,9 +1,6 @@
-import pytest
-
 from animepipeline.store.task import AsyncJsonStore, TaskStatus
 
 
-@pytest.mark.asyncio
 async def test_task_store() -> None:
     store = AsyncJsonStore()
 

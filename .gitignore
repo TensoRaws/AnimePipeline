@@ -166,7 +166,6 @@ cython_debug/
 
 /deploy/docker/
 
-/tests/task.json
-/task.json
-/conf/store.json
 /store.json
+/conf/store.json
+/tests/store.json

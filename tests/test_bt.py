@@ -14,8 +14,8 @@ from .util import CONFIG_PATH
     os.environ.get("GITHUB_ACTIONS") == "true", reason="Only test locally cuz BT may not suitable for CI"
 )
 def test_qbittorrent() -> None:
-    torrent_hash = "7c6df87a8bd5a53f5676adddd10df7058f7151a0"
-    torrent_url = "https://nyaa.si/download/1889965.torrent"
+    torrent_hash = "5484cff30b108ca1d1987fb6ea4eebed356b9ddd"
+    torrent_url = "https://nyaa.si/download/1878677.torrent"
 
     if Path("../deploy/docker/downloads").exists():
         download_path = Path("../deploy/docker/downloads")
