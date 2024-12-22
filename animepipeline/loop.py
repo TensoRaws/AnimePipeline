@@ -204,14 +204,12 @@ class Loop:
             )
             logger.info(f'FinalRip Task Started for "{task_info.name}" EP {task_info.episode}')
         except Exception as e:
-            logger.error(f"Failed to start finalrip task: {e}")
-
-        # wait video cut done
-        await asyncio.sleep(30)
+            logger.error(f"Failed to start FinalRip task: {e}")
 
         # check task progress
         while not await self.finalrip_client.check_task_completed(bt_downloaded_path.name):
             await asyncio.sleep(30)
+        logger.info(f'FinalRip encode task completed for "{task_info.name}" EP {task_info.episode}')
 
         # download temp file to bt_downloaded_path's parent directory
         temp_saved_path: Path = bt_downloaded_path.parent / (bt_downloaded_path.name + "-encoded.mkv")

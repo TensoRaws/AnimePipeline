@@ -216,12 +216,24 @@ class FinalRipClient:
 
         get_task_progress_response = await self._get_task_progress(GetTaskProgressRequest(video_key=video_key))
 
-        response = await self.client.get(
-            url=get_task_progress_response.data.encode_url,  # type: ignore
-            timeout=60 * 60,
-        )
-        if response.status_code != 200:
-            raise IOError(f"Error downloading file: {response.text}")
+        try:
+            logger.info(f"Downloading completed task: {save_path} ...")
+            t0 = time.time()
 
-        with open(save_path, mode="wb") as v:
-            v.write(response.content)
+            def _download_file() -> None:
+                with open(save_path, mode="wb") as v:
+                    response = httpx.get(
+                        url=get_task_progress_response.data.encode_url,  # type: ignore
+                        timeout=60 * 60,
+                    )
+                    if response.status_code != 200:
+                        raise IOError(f"Error downloading file: {response.text}")
+                    v.write(response.content)
+
+            _download_file()
+            del _download_file
+            gc.collect()
+            logger.info(f"Download completed task Successfully! path: {save_path}, time: {time.time() - t0:.2f}s")
+        except Exception as e:
+            logger.error(f"Error in downloading completed task: {save_path}: {e}")
+            raise e
