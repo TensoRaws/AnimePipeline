@@ -1,0 +1,53 @@
+name: CI-test-cli
+
+on:
+  push:
+    branches: ["main"]
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+
+  pull_request:
+    branches: ["main"]
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+
+  workflow_dispatch:
+
+env:
+  GITHUB_ACTIONS: true
+
+jobs:
+  cli:
+    strategy:
+      matrix:
+        os-version: ["ubuntu-20.04", "macos-13", "macos-14"]
+        python-version: ["3.9"]
+        poetry-version: ["1.8.3"]
+
+    runs-on: ${{ matrix.os-version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: ${{ matrix.poetry-version }}
+
+      - name: Build package
+        run: |
+          make build
+
+      - name: Install package and test CLI
+        run: |
+          cd dist
+          pip install *.whl
+
+          ap-rename -h
+          ap-btf -h
