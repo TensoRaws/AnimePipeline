@@ -23,8 +23,14 @@ def get_media_info(video_path: Union[str, Path]) -> MediaInfo:
     encode_tracks = json.loads(encode_media_info)["media"]["track"]
 
     release_name = video_path.name
-    release_date = datetime.now()
-    # date_YMd = release_date.strftime("%Y:%M:%d")
+
+    try:
+        release_date = datetime.strptime(encode_tracks[0]["Encoded_Date"], "%Y-%m-%d %H:%M:%S UTC")
+        if release_date.year < 2020:
+            raise ValueError("Wow, the release year < 2020, please check the file")
+    except Exception as e:
+        logger.warning(f'Failed to get "Encoded_Date" of {video_path}, set to current time, {e}')
+        release_date = datetime.now()
 
     try:
         release_size = encode_tracks[0]["FileSize_String"]
@@ -41,8 +47,8 @@ def get_media_info(video_path: Union[str, Path]) -> MediaInfo:
     try:
         release_format = encode_tracks[0]["Format"]
     except Exception as e:
-        logger.warning(f'Failed to get "Format" of {video_path}, set to "Unknown", {e}')
-        release_format = "Unknown"
+        logger.error(f'Failed to get "Format" of {video_path}, set to "Unknown", {e}')
+        raise e
 
     try:
         overall_bitrate = encode_tracks[0]["OverallBitRate_String"]
@@ -61,8 +67,8 @@ def get_media_info(video_path: Union[str, Path]) -> MediaInfo:
             else:
                 overall_bitrate = str(overall_bitrate) + " kb/s"
         except Exception as e:
-            logger.warning(f'Failed to get "OverallBitRate" of {video_path}, set to "Unknown", {e}')
-            overall_bitrate = "Unknown"
+            logger.error(f'Failed to get "OverallBitRate" of {video_path}, set to "Unknown", {e}')
+            raise e
 
     # VIDEO TRACK
     resolution = (0, 0)
