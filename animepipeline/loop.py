@@ -264,6 +264,19 @@ class Loop:
 
         self.qbittorrent_manager.add_torrent(torrent_hash=torrent_file_hash, torrent_file_path=torrent_file_save_path)
 
+        logger.info(f"Post to Telegram Channel for {task_info.name} EP {task_info.episode} ...")
+
+        if self.tg_channel_sender is None:
+            logger.info("Telegram Channel Sender is not enabled. Skip upload.")
+        else:
+            tg_text = get_telegram_text(
+                chinese_name=task_info.translation,
+                episode=task_info.episode,
+                file_name=finalrip_downloaded_path.name,
+                torrent_file_hash=torrent_file_hash,
+            )
+            await self.tg_channel_sender.send_text(text=tg_text)
+
         logger.info(f"Generate all post info files for {task_info.name} EP {task_info.episode} ...")
 
         post_template = PostTemplate(
@@ -279,18 +292,6 @@ class Loop:
             bbcode_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".txt"),
         )
 
-        logger.info(f"Post to Telegram Channel for {task_info.name} EP {task_info.episode} ...")
-
-        if self.tg_channel_sender is None:
-            logger.info("Telegram Channel Sender is not enabled. Skip upload.")
-        else:
-            tg_text = get_telegram_text(
-                chinese_name=task_info.translation,
-                episode=task_info.episode,
-                file_name=finalrip_downloaded_path.name,
-                torrent_file_hash=torrent_file_hash,
-            )
-            await self.tg_channel_sender.send_text(text=tg_text)
-
+        # update task status
         task_status.posted = True
         await self.json_store.update_task(task_info.hash, task_status)
