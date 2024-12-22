@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 from pathlib import Path
 
@@ -7,7 +8,7 @@ import pytest
 from animepipeline.bt.qb import QBittorrentManager
 from animepipeline.config import ServerConfig
 
-from .util import CONFIG_PATH
+from .util import CONFIG_PATH, TEST_VIDEO_PATH
 
 
 @pytest.mark.skipif(
@@ -44,3 +45,23 @@ def test_qbittorrent() -> None:
         print(f"Downloaded file: {file_path}")
     else:
         print("Download is not complete or failed.")
+
+    h = QBittorrentManager.make_torrent_file(
+        file_path=TEST_VIDEO_PATH,
+        torrent_file_save_path=download_path / "test_144p.torrent",
+    )
+    print(f"Torrent hash: {h}")
+
+    # copy the torrent file to the download path
+    shutil.copy(TEST_VIDEO_PATH, download_path)
+
+    qb_manager.add_torrent(torrent_hash=h, torrent_file_path=download_path / "test_144p.torrent")
+
+    # Check if the reseed is complete
+    while True:
+        time.sleep(2)
+        if qb_manager.check_download_complete(torrent_hash):
+            print("Reseed is complete.")
+            break
+        else:
+            print("Reseed is not complete.")

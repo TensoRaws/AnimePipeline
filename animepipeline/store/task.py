@@ -12,7 +12,7 @@ class TaskStatus(BaseModel):
     done: bool = False
     bt_downloaded_path: Optional[str] = None
     finalrip_downloaded_path: Optional[str] = None
-    tg_posted: bool = False
+    posted: bool = False
     ex_status_dict: Optional[Dict[str, Any]] = None
 
 

@@ -169,3 +169,5 @@ cython_debug/
 /store.json
 /conf/store.json
 /tests/store.json
+
+*.torrent
