@@ -24,6 +24,7 @@ def main() -> None:
 
     if args.UPLOADER is None:
         args.UPLOADER = "TensoRaws"
+
     path = Path(args.PATH)
 
     if args.TYPE is None:
