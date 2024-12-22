@@ -8,7 +8,7 @@ from pydantic import DirectoryPath
 from animepipeline.bt import QBittorrentManager
 from animepipeline.config import NyaaConfig, RSSConfig, ServerConfig
 from animepipeline.encode import FinalRipClient
-from animepipeline.mediainfo import FileNameInfo, gen_file_name
+from animepipeline.mediainfo import FileNameInfo, rename_file
 from animepipeline.pool import AsyncTaskExecutor
 from animepipeline.post import TGChannelSender
 from animepipeline.rss import TorrentInfo, parse_nyaa
@@ -218,26 +218,23 @@ class Loop:
 
         # rename temp file
         try:
-            gen_name = gen_file_name(
+            finalrip_downloaded_path = rename_file(
                 FileNameInfo(
-                    path=temp_saved_path, episode=task_info.episode, name=task_info.name, uploader=task_info.uploader
+                    path=temp_saved_path,
+                    episode=task_info.episode,
+                    name=task_info.name,
+                    uploader=task_info.uploader,
+                    type="WEBRip",
                 )
             )
-            finalrip_downloaded_path = Path(task_info.download_path) / gen_name
         except Exception as e:
             logger.error(f"Failed to generate file name: {e}")
             raise e
 
-        if finalrip_downloaded_path.exists():
-            finalrip_downloaded_path.unlink()
-            logger.warning(f"Encode File already exists, remove it: {finalrip_downloaded_path}")
-
-        temp_saved_path.rename(finalrip_downloaded_path)
-
         logger.info(f'FinalRip Encode Done for "{finalrip_downloaded_path.name}"')
 
         # update task status
-        task_status.finalrip_downloaded_path = gen_name
+        task_status.finalrip_downloaded_path = finalrip_downloaded_path.name
         await self.json_store.update_task(task_info.hash, task_status)
 
     async def pipeline_post(self, task_info: TaskInfo) -> None:

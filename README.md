@@ -28,6 +28,12 @@ make run
 
 or you can use docker to run the project, see [docker-compose.yml](./deploy/docker-compose.yml) for more details.
 
+### CLI
+
+```
+
+```
+
 ### Configuration
 
 #### Server Config:
