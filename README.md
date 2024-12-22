@@ -30,8 +30,12 @@ or you can use docker to run the project, see [docker-compose.yml](./deploy/dock
 
 ### CLI
 
-```
+some useful command line tools are provided, you can use them to rename or generate some info
 
+```
+pip install animepipeline
+ap-rename -h
+ap-btf -h
 ```
 
 ### Configuration
