@@ -254,11 +254,15 @@ class Loop:
         finalrip_downloaded_path = Path(task_info.download_path) / task_status.finalrip_downloaded_path
         torrent_file_save_path = Path(task_info.download_path) / (str(finalrip_downloaded_path.name) + ".torrent")
 
-        torrent_file_hash = QBittorrentManager.make_torrent_file(
-            file_path=finalrip_downloaded_path,
-            torrent_file_save_path=torrent_file_save_path,
-        )
-        logger.info(f"Torrent file created: {torrent_file_save_path}, hash: {torrent_file_hash}")
+        try:
+            torrent_file_hash = QBittorrentManager.make_torrent_file(
+                file_path=finalrip_downloaded_path,
+                torrent_file_save_path=torrent_file_save_path,
+            )
+            logger.info(f"Torrent file created: {torrent_file_save_path}, hash: {torrent_file_hash}")
+        except Exception as e:
+            logger.error(f"Failed to create torrent file: {e}")
+            raise e
 
         self.qbittorrent_manager.add_torrent(torrent_hash=torrent_file_hash, torrent_file_path=torrent_file_save_path)
 

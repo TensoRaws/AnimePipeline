@@ -131,7 +131,7 @@ class QBittorrentManager:
         """
         if not Path(file_path).exists():
             logger.error(f"File {file_path} does not exist.")
-            return ""
+            raise FileNotFoundError(f"File {file_path} does not exist.")
 
         new_torrent = Torrent.create_from(file_path)
         logger.info(f"Editing torrent file: {file_path} ...")
