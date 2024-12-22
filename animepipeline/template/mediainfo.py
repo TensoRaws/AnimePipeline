@@ -4,7 +4,7 @@ from typing import List, Union
 from animepipeline.mediainfo import get_media_info
 
 
-def gen_media_info_block(video_path: Union[str, Path], uploader: str = "TensoRaws") -> str:
+def get_media_info_block(video_path: Union[str, Path], uploader: str = "TensoRaws") -> str:
     """
     Generate a code block for media info.
 

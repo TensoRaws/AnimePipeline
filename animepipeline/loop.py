@@ -13,6 +13,7 @@ from animepipeline.pool import AsyncTaskExecutor
 from animepipeline.post import TGChannelSender
 from animepipeline.rss import TorrentInfo, parse_nyaa
 from animepipeline.store import AsyncJsonStore, TaskStatus
+from animepipeline.template import get_telegram_text
 
 
 class TaskInfo(TorrentInfo):
@@ -270,9 +271,13 @@ class Loop:
         if self.tg_channel_sender is None:
             logger.info("Telegram Channel Sender is not enabled. Skip upload.")
         else:
-            await self.tg_channel_sender.send_text(
-                text=f"{task_info.translation} | EP {task_info.episode} | {finalrip_downloaded_path.name} | hash: {torrent_file_hash}"
+            tg_text = get_telegram_text(
+                chinese_name=task_info.translation,
+                episode=task_info.episode,
+                file_name=finalrip_downloaded_path.name,
+                torrent_file_hash=torrent_file_hash,
             )
+            await self.tg_channel_sender.send_text(text=tg_text)
 
         task_status.posted = True
         await self.json_store.update_task(task_info.hash, task_status)
