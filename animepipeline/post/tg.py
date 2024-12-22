@@ -17,7 +17,7 @@ class TGChannelSender:
         self.bot = Bot(token=config.bot_token)
         self.channel_id = config.channel_id
 
-    @retry(wait=wait_random(min=3, max=5), stop=stop_after_attempt(5))
+    @retry(wait=wait_random(min=3, max=15), stop=stop_after_attempt(5))
     async def send_text(self, text: str) -> None:
         """
         Send text to the channel.

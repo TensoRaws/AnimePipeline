@@ -243,25 +243,39 @@ class Loop:
     async def pipeline_post(self, task_info: TaskInfo) -> None:
         task_status = await self.json_store.get_task(task_info.hash)
 
-        if self.tg_channel_sender is None:
-            logger.info("Telegram Channel Sender is not enabled. Skip upload.")
-            return
-
-        # check tg
-        if task_status.tg_posted:
+        # check posted
+        if task_status.posted:
             return
 
         if task_status.finalrip_downloaded_path is None:
             logger.error("FinalRip download path is None! finalrip download task not finished?")
             raise ValueError("FinalRip download path is None! finalrip download task not finished?")
 
-        logger.info(f'Post to Telegram Channel for "{task_info.name}" EP {task_info.episode}')
+        finalrip_downloaded_path = Path(task_info.download_path) / task_status.finalrip_downloaded_path
+        torrent_file_save_path = Path(task_info.download_path) / (str(finalrip_downloaded_path.name) + ".torrent")
+
+        try:
+            torrent_file_hash = QBittorrentManager.make_torrent_file(
+                file_path=finalrip_downloaded_path,
+                torrent_file_save_path=torrent_file_save_path,
+            )
+            logger.info(f"Torrent file created: {torrent_file_save_path}, hash: {torrent_file_hash}")
+        except Exception as e:
+            logger.error(f"Failed to create torrent file: {e}")
+            raise e
+
+        self.qbittorrent_manager.add_torrent(torrent_hash=torrent_file_hash, torrent_file_path=torrent_file_save_path)
+
+        logger.info(f"Post to Telegram Channel for {task_info.name} EP {task_info.episode}")
 
         finalrip_downloaded_path = Path(task_info.download_path) / task_status.finalrip_downloaded_path
 
-        await self.tg_channel_sender.send_text(
-            text=f"{task_info.translation} | EP {task_info.episode} | {finalrip_downloaded_path.name}",
-        )
+        if self.tg_channel_sender is None:
+            logger.info("Telegram Channel Sender is not enabled. Skip upload.")
+        else:
+            await self.tg_channel_sender.send_text(
+                text=f"{task_info.translation} | EP {task_info.episode} | {finalrip_downloaded_path.name} | hash: {torrent_file_hash}"
+            )
 
-        task_status.tg_posted = True
+        task_status.posted = True
         await self.json_store.update_task(task_info.hash, task_status)
