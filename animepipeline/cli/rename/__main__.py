@@ -13,6 +13,8 @@ parser.add_argument("-e", "--EPISODE", help="Episode number", required=False)
 parser.add_argument("-n", "--NAME", help="Anime name", required=True)
 # Uploader Name
 parser.add_argument("-u", "--UPLOADER", help="Uploader name", required=False)
+# Encode Type
+parser.add_argument("-t", "--TYPE", help="Encode type", required=False)
 
 args = parser.parse_args()
 
@@ -23,6 +25,12 @@ def main() -> None:
     if args.UPLOADER is None:
         args.UPLOADER = "TensoRaws"
     path = Path(args.PATH)
+
+    if args.TYPE is None:
+        args.TYPE = "WEBRip"
+
+    if args.TYPE not in ["WEBRip", "BDRip", "WEB-DL", "REMUX", "DVDRip"]:
+        raise ValueError("Encode type must be one of the following: WEBRip, BDRip, WEB-DL, REMUX, DVDRip")
 
     if not path.is_dir():
         if args.EPISODE is None:
@@ -38,6 +46,7 @@ def main() -> None:
             episode=episode,
             name=args.NAME,
             uploader=args.UPLOADER,
+            type=args.TYPE,
         )
         new_path = rename_file(anime_info=anime_info)
         print(f"Renamed: {path} -> {new_path}")
