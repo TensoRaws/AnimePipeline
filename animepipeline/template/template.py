@@ -30,7 +30,7 @@ def get_telegram_text(chinese_name: str, episode: int, file_name: str, torrent_f
 class PostTemplate:
     def __init__(
         self,
-        video_path: str,
+        video_path: Union[str, Path],
         bangumi_url: str,
         chinese_name: Optional[str] = None,
         uploader: str = "TensoRaws",
@@ -45,7 +45,7 @@ class PostTemplate:
         :param chinese_name: Chinese name, default is None (auto fetch from bangumi_url)
         :param uploader: Uploader
         :param announcement: Announcement string
-        :param adivertisement_images: Adivertisement images
+        :param adivertisement_images: Adivertisement images, required at least 3 images, Recruitment, Telegram Group, Telegram Channel images
         """
         self.video_path = video_path
         self.uploader = uploader
@@ -58,13 +58,11 @@ class PostTemplate:
         if announcement is not None:
             self.announcement = announcement
         else:
-            self.announcement = """
-资源来源于网络，感谢原资源提供者！
+            self.announcement = """片源来源于网络，感谢原资源提供者！
 本资源使用 FinalRip 分布式压制。
 
 Resources are from the internet, thanks to the original providers!
-Using FinalRip for distributed video processing.
-"""
+Using FinalRip for distributed video processing."""
 
         if adivertisement_images is not None:
             self.adivertisement_images = adivertisement_images
@@ -76,14 +74,71 @@ Using FinalRip for distributed video processing.
                 "https://raw.githubusercontent.com/TensoRaws/.github/refs/heads/main/TensoRaws%E7%94%B5%E6%8A%A5%E9%A2%91%E9%81%93.png",
             ]
 
-    # def html(self) -> str:
-    #     pass
-    #
-    # def markdown(self) -> str:
-    #     pass
-    #
-    # def bbcode(self) -> str:
-    #     pass
+    def html(self) -> str:
+        advertisement_images_block = "\n".join([f'<img src="{url}" width=250 />' for url in self.adivertisement_images])
+
+        return f"""
+<div>
+    <h3>Announcement:</h3>
+    <pre style="font-family: 'Courier New', Courier, monospace;">{self.announcement}</pre>
+    <br />
+    <h4>{self.chinese_name}</h4>
+    <p><b>Story: </b></p>
+    <pre style="font-family: 'Courier New', Courier, monospace;">{self.summary}</pre>
+    <br />
+    <h4>MediaInfo:</h4>
+    <pre style="font-family: 'Courier New', Courier, monospace;">{self.media_info_block}</pre>
+    <br />
+    {advertisement_images_block}
+</div>
+"""
+
+    def markdown(self) -> str:
+        return f"""### Announcement:
+```
+{self.announcement}
+```
+
+### {self.chinese_name}
+Story:
+{self.summary}
+
+### MediaInfo:
+```
+{self.media_info_block}
+```
+
+[招新链接 | Recruitment Link]({self.adivertisement_images[0]})
+[电报群链接 | Telegram Group Link]({self.adivertisement_images[1]})
+[电报频道链接 | Telegram Channel Link]({self.adivertisement_images[2]})
+"""
+
+    def bbcode(self) -> str:
+        advertisement_images_block = "\n".join(
+            [f"[url={url}][img]{url}[/img][/url]" for url in self.adivertisement_images]
+        )
+
+        return f"""[quote][b]
+Announcement:
+[size=3]
+{self.announcement}
+[/size]
+[/b][/quote]
+
+[b][size=4]
+{self.chinese_name}
+[/size][/b]
+
+[b]Story: [/b]
+{self.summary}
+
+[quote][font=Courier New]
+[b]MediaInfo: [/b]
+{self.media_info_block}
+[/font][/quote]
+
+{advertisement_images_block}
+"""
 
     def save(
         self,
@@ -98,4 +153,14 @@ Using FinalRip for distributed video processing.
         :param markdown_path: Markdown file path
         :param bbcode_path: BBCode file path
         """
-        pass
+        if html_path is not None:
+            with open(html_path, "w", encoding="utf-8") as f:
+                f.write(self.html())
+
+        if markdown_path is not None:
+            with open(markdown_path, "w", encoding="utf-8") as f:
+                f.write(self.markdown())
+
+        if bbcode_path is not None:
+            with open(bbcode_path, "w", encoding="utf-8") as f:
+                f.write(self.bbcode())

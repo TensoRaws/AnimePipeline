@@ -35,10 +35,12 @@ def get_bangumi_info(bangumi_url: str, chinese_name: Optional[str] = None) -> Tu
         if chinese_name is None:
             try:
                 chinese_name = res["name_cn"]
+                if chinese_name is None or chinese_name == "":
+                    raise ValueError("name_cn is empty")
             except Exception:
                 chinese_name = res["name"]
 
-            if chinese_name is None:
+            if chinese_name is None or chinese_name == "":
                 chinese_name = "!!!!!Fetch Chinese Name failed!!!!!"
 
     return summary, chinese_name

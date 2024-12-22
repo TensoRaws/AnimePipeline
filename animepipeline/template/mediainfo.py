@@ -46,7 +46,7 @@ def get_media_info_block(video_path: Union[str, Path], uploader: str = "TensoRaw
     for audio_track_id, audio_track in enumerate(media_info.audios):
         write_info_list.append(
             "AUDIO#"
-            + str(audio_track_id).zfill(2)
+            + str(audio_track_id + 1).zfill(2)
             + "............: "
             + audio_track[0]
             + ", "
@@ -57,7 +57,12 @@ def get_media_info_block(video_path: Union[str, Path], uploader: str = "TensoRaw
     # SUBTITLE TRACK
     for subtitle_track_id, subtitle_track in enumerate(media_info.subtitles):
         write_info_list.append(
-            "SUBTITLE#" + str(subtitle_track_id).zfill(2) + ".........: " + subtitle_track[0] + ", " + subtitle_track[1]
+            "SUBTITLE#"
+            + str(subtitle_track_id + 1).zfill(2)
+            + ".........: "
+            + subtitle_track[0]
+            + ", "
+            + subtitle_track[1]
         )
     write_info_list.append("UPLOADER............: " + uploader)
 
