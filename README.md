@@ -4,6 +4,7 @@ auto encode new anime episode, driven by [**FinalRip**](https://github.com/Tenso
 
 [![codecov](https://codecov.io/gh/TensoRaws/AnimePipeline/graph/badge.svg?token=CtgLouRy8u)](https://codecov.io/gh/TensoRaws/AnimePipeline)
 [![CI-test](https://github.com/TensoRaws/AnimePipeline/actions/workflows/CI-test.yml/badge.svg)](https://github.com/TensoRaws/AnimePipeline/actions/workflows/CI-test.yml)
+[![CI-test-cli](https://github.com/TensoRaws/AnimePipeline/actions/workflows/CI-test-cli.yml/badge.svg)](https://github.com/TensoRaws/AnimePipeline/actions/workflows/CI-test-cli.yml)
 [![Docker Build CI](https://github.com/TensoRaws/AnimePipeline/actions/workflows/CI-docker.yml/badge.svg)](https://github.com/TensoRaws/AnimePipeline/actions/workflows/CI-docker.yml)
 [![Release](https://github.com/TensoRaws/AnimePipeline/actions/workflows/Release.yml/badge.svg)](https://github.com/TensoRaws/AnimePipeline/actions/workflows/Release.yml)
 [![PyPI version](https://badge.fury.io/py/animepipeline.svg)](https://badge.fury.io/py/animepipeline)

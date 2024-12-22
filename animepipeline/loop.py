@@ -13,6 +13,7 @@ from animepipeline.pool import AsyncTaskExecutor
 from animepipeline.post import TGChannelSender
 from animepipeline.rss import TorrentInfo, parse_nyaa
 from animepipeline.store import AsyncJsonStore, TaskStatus
+from animepipeline.template import PostTemplate, get_telegram_text
 
 
 class TaskInfo(TorrentInfo):
@@ -263,16 +264,33 @@ class Loop:
 
         self.qbittorrent_manager.add_torrent(torrent_hash=torrent_file_hash, torrent_file_path=torrent_file_save_path)
 
-        logger.info(f"Post to Telegram Channel for {task_info.name} EP {task_info.episode}")
+        logger.info(f"Generate all post info files for {task_info.name} EP {task_info.episode} ...")
 
-        finalrip_downloaded_path = Path(task_info.download_path) / task_status.finalrip_downloaded_path
+        post_template = PostTemplate(
+            video_path=finalrip_downloaded_path,
+            bangumi_url=task_info.bangumi,  # type: ignore
+            chinese_name=task_info.translation,
+            uploader="TensoRaws",
+        )
+
+        post_template.save(
+            html_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".html"),
+            markdown_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".md"),
+            bbcode_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".txt"),
+        )
+
+        logger.info(f"Post to Telegram Channel for {task_info.name} EP {task_info.episode} ...")
 
         if self.tg_channel_sender is None:
             logger.info("Telegram Channel Sender is not enabled. Skip upload.")
         else:
-            await self.tg_channel_sender.send_text(
-                text=f"{task_info.translation} | EP {task_info.episode} | {finalrip_downloaded_path.name} | hash: {torrent_file_hash}"
+            tg_text = get_telegram_text(
+                chinese_name=task_info.translation,
+                episode=task_info.episode,
+                file_name=finalrip_downloaded_path.name,
+                torrent_file_hash=torrent_file_hash,
             )
+            await self.tg_channel_sender.send_text(text=tg_text)
 
         task_status.posted = True
         await self.json_store.update_task(task_info.hash, task_status)
