@@ -47,6 +47,11 @@ class PostTemplate:
         :param announcement: Announcement string
         :param adivertisement_images: Adivertisement images, required at least 3 images, Recruitment, Telegram Group, Telegram Channel images
         """
+        if adivertisement_images is not None and len(adivertisement_images) < 3:
+            raise ValueError(
+                "Adivertisement images required at least 3 images, Recruitment, Telegram Group, Telegram Channel images"
+            )
+
         self.video_path = video_path
         self.uploader = uploader
 
@@ -109,7 +114,9 @@ Story:
 ```
 
 [招新链接 | Recruitment Link]({self.adivertisement_images[0]})
+
 [电报群链接 | Telegram Group Link]({self.adivertisement_images[1]})
+
 [电报频道链接 | Telegram Channel Link]({self.adivertisement_images[2]})
 """
 
@@ -118,17 +125,12 @@ Story:
             [f"[url={url}][img]{url}[/img][/url]" for url in self.adivertisement_images]
         )
 
-        return f"""[quote][b]
-Announcement:
-[size=3]
+        return f"""[quote][b]Announcement:[size=3]
 {self.announcement}
 [/size]
 [/b][/quote]
 
-[b][size=4]
-{self.chinese_name}
-[/size][/b]
-
+[b][size=4]{self.chinese_name}[/size][/b]
 [b]Story: [/b]
 {self.summary}
 
