@@ -1,6 +1,6 @@
 import argparse
 
-parser = argparse.ArgumentParser(description="Generate all post info files for the anime")
+parser = argparse.ArgumentParser(description="Generate all post info files for the anime.")
 
 
 args = parser.parse_args()

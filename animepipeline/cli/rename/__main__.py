@@ -3,7 +3,7 @@ from pathlib import Path
 
 from animepipeline.mediainfo import FileNameInfo, rename_file
 
-parser = argparse.ArgumentParser(description="Rename anime video files")
+parser = argparse.ArgumentParser(description="Rename anime video files.")
 
 # Input Path
 parser.add_argument("-p", "--PATH", help="Path to the video file or directory", required=True)
