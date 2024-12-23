@@ -23,6 +23,7 @@ class TaskInfo(TorrentInfo):
     param_content: str
     slice: Optional[bool] = True
     timeout: Optional[int] = 20
+    queue: Optional[str] = "priority"
 
 
 def build_task_info(
@@ -53,6 +54,7 @@ def build_task_info(
         param_content=param_content,
         slice=nyaa_config.slice,
         timeout=nyaa_config.timeout,
+        queue=nyaa_config.queue,
     )
 
 
@@ -205,6 +207,7 @@ class Loop:
                 script=task_info.script_content,
                 slice=task_info.slice,
                 timeout=task_info.timeout,
+                queue=task_info.queue,
             )
             logger.info(f'FinalRip Task Started for "{task_info.name}" EP {task_info.episode}')
         except Exception as e:
