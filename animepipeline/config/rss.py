@@ -12,6 +12,7 @@ class BaseConfig(BaseModel):
     param: str
     slice: Optional[bool] = True
     timeout: Optional[int] = 20
+    queue: Optional[str] = "priority"
 
 
 class NyaaConfig(BaseModel):
@@ -25,6 +26,7 @@ class NyaaConfig(BaseModel):
     param: Optional[str] = None
     slice: Optional[bool] = None
     timeout: Optional[int] = None
+    queue: Optional[str] = None
 
 
 class RSSConfig(BaseModel):
@@ -117,6 +119,9 @@ class RSSConfig(BaseModel):
 
             if item.timeout is None:
                 item.timeout = config.base.timeout
+
+            if item.queue is None:
+                item.queue = config.base.queue
 
             if item.script is None:
                 item.script = config.base.script

@@ -4,6 +4,7 @@ base:
   param: default.txt
   slice: true
   timeout: 20
+  queue: priority
 
 nyaa:
   - name: "Make Heroine ga Oosugiru!"
@@ -16,3 +17,4 @@ nyaa:
     #    param: default2.txt # override param
     #    slice: true # override slice
     timeout: 18 # override timeout
+    #    queue: priority # override queue (now support "priority" or "default")

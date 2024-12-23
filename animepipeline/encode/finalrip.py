@@ -185,7 +185,13 @@ class FinalRipClient:
             logger.error(f"Error creating task: {new_task_response.error.message}")  # type: ignore
 
     async def start_task(
-        self, video_key: str, encode_param: str, script: str, slice: Optional[bool] = True, timeout: Optional[int] = 20
+        self,
+        video_key: str,
+        encode_param: str,
+        script: str,
+        slice: Optional[bool] = True,
+        timeout: Optional[int] = 20,
+        queue: Optional[str] = "priority",
     ) -> None:
         """
         start encode task
@@ -195,10 +201,11 @@ class FinalRipClient:
         :param script: encode script
         :param slice: cut video into clips or not
         :param timeout: clip timeout, default 20 minutes
+        :param queue: queue name, default is "priority"
         """
         resp = await self._start_task(
             StartTaskRequest(
-                video_key=video_key, encode_param=encode_param, script=script, slice=slice, timeout=timeout
+                video_key=video_key, encode_param=encode_param, script=script, slice=slice, timeout=timeout, queue=queue
             )
         )
         if not resp.success:

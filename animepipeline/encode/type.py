@@ -37,6 +37,7 @@ class StartTaskRequest(BaseModel):
     video_key: str
     slice: Optional[bool] = None
     timeout: Optional[int] = None
+    queue: Optional[str] = None
 
 
 class StartTaskResponse(BaseModel):
