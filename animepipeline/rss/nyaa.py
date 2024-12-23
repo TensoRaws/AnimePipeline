@@ -5,13 +5,13 @@ from typing import List
 import feedparser
 import httpx
 from loguru import logger
-from tenacity import retry, stop_after_attempt, stop_after_delay, wait_random
+from tenacity import retry, stop_after_attempt, wait_random
 
 from animepipeline.config import NyaaConfig
 from animepipeline.rss.type import TorrentInfo
 
 
-@retry(wait=wait_random(min=3, max=5), stop=stop_after_delay(10) | stop_after_attempt(30))
+@retry(wait=wait_random(min=3, max=15), stop=stop_after_attempt(10))
 def parse_nyaa(cfg: NyaaConfig) -> List[TorrentInfo]:
     rss_content = httpx.get(cfg.link).text
 

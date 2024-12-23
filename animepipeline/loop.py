@@ -102,7 +102,11 @@ class Loop:
             # refresh rss config
             self.rss_config.refresh_config()
             for cfg in self.rss_config.nyaa:
-                torrent_info_list = parse_nyaa(cfg)
+                try:
+                    torrent_info_list = parse_nyaa(cfg)
+                except Exception as e:
+                    logger.error(f"Failed to parse nyaa for {cfg.name}: {e}")
+                    continue
 
                 for torrent_info in torrent_info_list:
                     task_info = build_task_info(
