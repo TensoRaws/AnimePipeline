@@ -46,7 +46,6 @@ ap-btf -h
 - loop interval: the interval of the loop, default is 200s
 - _download path_: the path to save the downloaded torrent file, if you use docker, you should mount the volume to the container, then use the path in the container. like `/downloads`
 - telegram bot token & channel id: your own bot token and channel id
-- telegram bot api: use tg bot local mode, see [telegram-bot-api](https://core.telegram.org/api/obtaining_api_id) for more details.
 
 #### RSS Config:
 

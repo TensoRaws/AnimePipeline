@@ -19,7 +19,7 @@ def get_telegram_text(chinese_name: str, episode: int, file_name: str, torrent_f
 ✈️ -----> 正在出种...
 {chinese_name} | EP {str(episode).zfill(2)}
 {file_name}
-磁力链接 | Magnet Link:
+🧲 磁力链接 | Magnet Link:
 
 {gen_magnet_link(torrent_file_hash)}
 
