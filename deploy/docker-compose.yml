@@ -11,8 +11,8 @@ services:
     image: lychee0/animepipeline:latest
     restart: always
     volumes:
-      - ../conf:/app/conf
-      - ./docker/downloads:/downloads
+      - ./animepipeline:/app/conf
+      - ./downloads:/downloads
     networks:
       - backend
 
@@ -23,8 +23,8 @@ services:
       - PUID=1026
       - PGID=100
     volumes:
-      - ./docker/qb-config:/config
-      - ./docker/downloads:/downloads
+      - ./allinone/qb-config:/config
+      - ./downloads:/downloads
     ports:
       - "6881:6881"
       - "6881:6881/udp"
