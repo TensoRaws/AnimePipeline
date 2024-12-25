@@ -165,6 +165,7 @@ cython_debug/
 *.mkv
 
 /deploy/docker/
+/deploy/allinone/
 
 /store.json
 /conf/store.json

@@ -269,6 +269,24 @@ class Loop:
 
         self.qbittorrent_manager.add_torrent(torrent_hash=torrent_file_hash, torrent_file_path=torrent_file_save_path)
 
+        logger.info(f"Generate all post info files for {task_info.name} EP {task_info.episode} ...")
+
+        try:
+            post_template = PostTemplate(
+                video_path=finalrip_downloaded_path,
+                bangumi_url=task_info.bangumi,  # type: ignore
+                chinese_name=task_info.translation,
+                uploader="TensoRaws",
+            )
+
+            post_template.save(
+                html_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".html"),
+                markdown_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".md"),
+                bbcode_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".txt"),
+            )
+        except Exception as e:
+            logger.error(f"Failed to generate post info files: {e}")
+
         logger.info(f"Post to Telegram Channel for {task_info.name} EP {task_info.episode} ...")
 
         if self.tg_channel_sender is None:
@@ -281,21 +299,6 @@ class Loop:
                 torrent_file_hash=torrent_file_hash,
             )
             await self.tg_channel_sender.send_text(text=tg_text)
-
-        logger.info(f"Generate all post info files for {task_info.name} EP {task_info.episode} ...")
-
-        post_template = PostTemplate(
-            video_path=finalrip_downloaded_path,
-            bangumi_url=task_info.bangumi,  # type: ignore
-            chinese_name=task_info.translation,
-            uploader="TensoRaws",
-        )
-
-        post_template.save(
-            html_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".html"),
-            markdown_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".md"),
-            bbcode_path=Path(task_info.download_path) / (finalrip_downloaded_path.name + ".txt"),
-        )
 
         # update task status
         task_status.posted = True
