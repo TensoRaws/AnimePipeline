@@ -2,10 +2,6 @@ version: "3.8"
 
 name: animepipeline
 
-networks:
-  backend:
-    driver: bridge
-
 services:
   animepipeline:
     image: lychee0/animepipeline:latest
@@ -13,11 +9,9 @@ services:
     volumes:
       - ./animepipeline:/app/conf
       - ./downloads:/downloads
-    networks:
-      - backend
 
   qb:
-    image: superng6/qbittorrentee:4.4.5.10
+    image: linuxserver/qbittorrent:latest
     restart: always
     environment:
       - PUID=1026
@@ -28,4 +22,21 @@ services:
     ports:
       - "6881:6881"
       - "6881:6881/udp"
+      - "48008:48008"
+      - "48008:48008/udp"
       - "8091:8080"
+#  qb-ee:
+#    image: superng6/qbittorrentee:4.4.5.10
+#    restart: always
+#    environment:
+#      - PUID=1026
+#      - PGID=100
+#    volumes:
+#      - ./allinone/qb-config:/config
+#      - ./downloads:/downloads
+#    ports:
+#      - "6881:6881"
+#      - "6881:6881/udp"
+#      - "48008:48008"
+#      - "48008:48008/udp"
+#      - "8091:8080"

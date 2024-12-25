@@ -2,10 +2,6 @@ version: "3.8"
 
 name: animepipeline-dev
 
-networks:
-  backend:
-    driver: bridge
-
 services:
   qb:
     image: superng6/qbittorrentee:4.4.5.10
@@ -19,4 +15,6 @@ services:
     ports:
       - "6881:6881"
       - "6881:6881/udp"
+      - "48008:48008"
+      - "48008:48008/udp"
       - "8091:8080"
