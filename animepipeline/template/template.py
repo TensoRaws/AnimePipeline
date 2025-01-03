@@ -80,8 +80,6 @@ Using FinalRip for distributed video processing."""
             ]
 
     def html(self) -> str:
-        advertisement_images_block = "\n".join([f'<img src="{url}" width=250 />' for url in self.adivertisement_images])
-
         return f"""
 <div>
     <h3>Announcement:</h3>
@@ -94,7 +92,12 @@ Using FinalRip for distributed video processing."""
     <h4>MediaInfo:</h4>
     <pre style="font-family: 'Courier New', Courier, monospace;">{self.media_info_block}</pre>
     <br />
-    {advertisement_images_block}
+    <img src="{self.adivertisement_images[0]}" width=400 />
+    <br />
+    <div style="display: flex;">
+        <img src="{self.adivertisement_images[1]}" width=250 />
+        <img src="{self.adivertisement_images[2]}" width=250 />
+    </div>
 </div>
 """
 
