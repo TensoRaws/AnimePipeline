@@ -68,7 +68,6 @@ you should provide the compatible params and scripts in the [params](./conf/para
 - [httpx](https://github.com/encode/httpx)
 - [qbittorrent](https://github.com/qbittorrent/qBittorrent)
 - [qbittorrent-api](https://github.com/rmartin16/qbittorrent-api)
-- [telegram-bot-api](https://github.com/tdlib/telegram-bot-api)
 - [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
 
 ### License
